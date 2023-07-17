@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src=" https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+    <script>
+      const prt = console.log;
+      const t1 = tf.tensor1d([1, 2, 3]);
+      prt(tf.memory());
+      // tidy 는 함수안의 할당된 메모리를 모두 해제
+      const rt = tf.tidy(() => {
+        return t1.log().square().round();
+      });
+      console.log(rt);
+      t1.dispose();
+      prt(tf.memory());
+    </script>
+  </head>
+  <body></body>
+</html>
