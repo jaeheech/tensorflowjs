@@ -1,0 +1,2 @@
+
+prt(tf.memory());
