@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>이미지 분류 with MobileNet</title>
+    <style>
+      .bold {
+        font-weight: bold;
+      }
+
+      .timid {
+        color: #999999;
+      }
+
+      .high-probability {
+        font-size: 24px;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+  </head>
+  <body>
+    <h1>이미지 분류 with MobileNet</h1>
+    <input type="file" id="upload" accept="image/*" />
+    <div id="preview"></div>
+    <p id="predictions">인식중...</p>
+    <script>
+      const uploadInput = document.getElementById("upload");
+      const previewDiv = document.getElementById("preview");
+      const predictionsP = document.getElementById("predictions");
+
+      // 이미지 업로드 이벤트 핸들러
+      uploadInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          // 이미지 로드
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            img.onload = () => {
+              previewDiv.innerHTML = ""; // 기존 미리보기 제거
+              previewDiv.appendChild(img);
+
+              // MobileNet 모델 로드 후 분석
+              mobilenet.load().then((model) => {
+                model.classify(img).then((predictions) => {
+                  let result = "분류 결과: ";
+                  const filteredPredictions = predictions.filter(
+                    (prediction) => prediction.probability >= 0.01 // 필요한 확률 이상만 표시
+                  );
+                  filteredPredictions.forEach((prediction, index) => {
+                    const className = prediction.className;
+                    const probability = (prediction.probability * 100).toFixed(
+                      2
+                    );
+                    const probabilityClass =
+                      prediction.probability >= 0.8
+                        ? "bold high-probability"
+                        : "timid";
+                    result +=
+                      `<span class="${probabilityClass}">${className}</span>` +
+                      " (" +
+                      probability +
+                      "%)" +
+                      (index < filteredPredictions.length - 1 ? ", " : "");
+                  });
+                  predictionsP.innerHTML = result;
+                });
+              });
+            };
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    </script>
+  </body>
+</html>
