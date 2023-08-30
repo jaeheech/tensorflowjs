@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+      /* Centering the elements */
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f2f2f2;
+      }
+
+      /* Styling the container */
+      .container {
+        text-align: center;
+        border: 2px solid #333;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Styling the button */
+      button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Styling the input field */
+      input[type="text"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 100px;
+      }
+
+      /* Styling the prediction status */
+      #predictionStatus {
+        font-weight: bold;
+        margin-top: 10px;
+        display: block;
+      }
+
+      /* Styling the prediction result */
+      #predictionResult {
+        font-weight: bold;
+        margin-top: 10px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 1. 파일 업로드와 아버지 키 입력을 받을 입력 상자 -->
+    <div class="container">
+      <input type="file" id="fileInput" accept=".xlsx" />
+      <div id="output"></div>
+      아버지키 입력 <input type="text" id="fatherHeightInput" />
+      <!-- 2. 예측 시작 버튼 -->
+      <button onclick="trainModel()">예측시작</button>
+      <!-- 4. 예측 결과를 보여줄 스팬 -->
+      <span id="predictionStatus"></span>
+      <span id="predictionResult"></span>
+    </div>
+    <script>
+      // 5. 데이터를 저장할 배열
+      let fatherData = [];
+      let sonData = [];
+      let model;
+
+      // 6. 파일 업로드 이벤트 리스너 추가
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", excelFile, false);
+
+      // 7. 파일 읽기 함수
+      function excelFile(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const data = e.target.result;
+          const workbook = XLSX.read(data, { type: "binary" });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+          // 7.1. 데이터 추출
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            fatherData.push(parseFloat(row[0]));
+            sonData.push(parseFloat(row[1]));
+          }
+
+          // 7.2. 추출된 데이터 확인
+          console.log("Father data:", fatherData);
+          console.log("Son data:", sonData);
+        };
+
+        // 7.3. 파일을 바이너리 문자열로 읽기
+        reader.readAsBinaryString(file);
+      }
+
+      // 8. 모델 훈련 함수
+      function trainModel() {
+        const fatherHeightInput = document.getElementById("fatherHeightInput");
+        const fatherHeight = parseFloat(fatherHeightInput.value);
+        const predictionStatus = document.getElementById("predictionStatus");
+        predictionStatus.innerHTML = "예측중...";
+        // 8.1. 유효한 숫자가 아닌 경우 예외 처리
+        if (isNaN(fatherHeight)) {
+          alert("아버지키를 입력하세요!");
+          return;
+        }
+
+        // 8.2. 데이터가 없을 경우 예외 처리
+        if (!fatherData.length || !sonData.length) {
+          alert("파일을 올려주세요.");
+          return;
+        }
+
+        // 8.3. 텐서 생성
+        const x = fatherData;
+        const y = sonData;
+        const xt = tf.tensor(x);
+        const yt = tf.tensor(y);
+
+        // 8.4. 모델 구성
+        model = tf.sequential();
+        model.add(
+          tf.layers.dense({ units: 26, activation: "sigmoid", inputShape: [1] })
+        );
+        model.add(tf.layers.dense({ units: 26, activation: "sigmoid" }));
+        model.add(tf.layers.dense({ units: 1 }));
+
+        const optimizer = tf.train.adam();
+        model.compile({ optimizer: optimizer, loss: "meanSquaredError" });
+
+        // 8.5. 훈련 파라미터 설정
+        const fparam = {
+          epochs: 500,
+          callbacks: {
+            onEpochEnd: (e, l) => {
+              console.log("epoch:", e, l, "RMSE=>", Math.sqrt(l.loss));
+            },
+          },
+        };
+
+        // 8.6. 모델 훈련 및 예측
+        model.fit(xt, yt, fparam).then(() => {
+          console.log("모델훈련완료.");
+          model.summary();
+          predictionStatus.innerHTML = "";
+          predictSonHeight();
+        });
+      }
+
+      // 9. 아들 키 예측 함수
+      function predictSonHeight() {
+        const fatherHeightInput = document.getElementById("fatherHeightInput");
+        const fatherHeight = parseFloat(fatherHeightInput.value);
+
+        // 9.1. 입력 텐서 생성 및 예측
+        const inputTensor = tf.tensor([[fatherHeight]]);
+        const prediction = model.predict(inputTensor);
+        const sonHeightPrediction = prediction.dataSync()[0];
+
+        // 9.2. 예측 결과 표시
+        const predictionResultSpan =
+          document.getElementById("predictionResult");
+        predictionResultSpan.innerHTML = `예측된 아들키: ${sonHeightPrediction.toFixed(
+          2
+        )}cm`;
+      }
+    </script>
+  </body>
+</html>

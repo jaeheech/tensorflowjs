@@ -7,7 +7,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.11.0/dist/tf-converter.min.js"></script>
+
     <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script> -->
+    <style>
+      video,
+      canvas {
+        position: absolute;
+      }
+    </style>
   </head>
   <body>
     <h1>PoseNet Training</h1>
@@ -24,6 +31,7 @@
       ></video>
       <canvas id="canvas">0</canvas>
     </div>
+    <div id="result_label"></div>
     <script src="./poseNet.js"></script>
   </body>
 </html>

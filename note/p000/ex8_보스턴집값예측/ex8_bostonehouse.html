@@ -67,7 +67,7 @@ https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
         model.compile(cparam);
         /* 3.모델로 훈련시작 */
         const fparam = {
-          epochs: 1000,
+          epochs: 100,
           callbacks: {
             onEpochEnd: (e, l) => {
               console.log("epoch:", e, l, "RMSE=>", Math.sqrt(l.loss));

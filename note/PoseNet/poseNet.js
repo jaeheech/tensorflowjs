@@ -15,17 +15,38 @@ posenet.load().then((model) => {
     console.log("정상");
     predict();
   };
-
+  function Capture() {
+    model.estimateSinglePose(video).then((pose) => {
+      console.log(pose.keypoints);
+    });
+  }
   function predict() {
     model.estimateSinglePose(video).then((pose) => {
       canvas.width = video.width;
       canvas.height = video.height;
       drawKeypoints(pose.keypoints, 0.6, context);
       drawSkeleton(pose.keypoints, 0.6, context);
+
+      // Get the keypoint positions for left and right hands
+      const leftHand = pose.keypoints.find(
+        (keypoint) => keypoint.part === "leftWrist"
+      );
+      const rightHand = pose.keypoints.find(
+        (keypoint) => keypoint.part === "rightWrist"
+      );
+
+      if (leftHand && leftHand.score >= 0.6) {
+        result_label.innerText = "왼손을 들었습니다.";
+      } else if (rightHand && rightHand.score >= 0.6) {
+        result_label.innerText = "오른손을 들었습니다.";
+      } else {
+        result_label.innerText = "";
+      }
     });
     requestAnimationFrame(predict);
   }
 });
+
 /* 기본 예시 복붙으로 사용하기 */
 const color = "blue";
 const boundingBoxColor = "red";

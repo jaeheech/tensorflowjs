@@ -1,0 +1,27 @@
+<!-- 웹페이지에 버튼두개를 만들고 버튼하나는 알림창으로 현재시간을 보여주고 두번째 버튼은 콘솔창에 1부터 345 까지 더한값을 출력하라. -->
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script>
+      function showTime() {
+        var currentTime = new Date()
+        alert(currentTime)
+      }
+
+      function sumNumbers() {
+        var sum = 0
+        for (var i = 1; i <= 345; i++) {
+          sum += i
+        }
+        console.log(sum)
+      }
+    </script>
+  </head>
+  <body>
+    <button onclick="showTime()">Show Current Time</button>
+    <button onclick="sumNumbers()">Sum Numbers</button>
+  </body>
+</html>
