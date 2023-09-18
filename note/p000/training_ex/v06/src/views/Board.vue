@@ -29,9 +29,7 @@
     </div>
     <div id="main">
       <div id="board">
-        <div id="head">
-          <h2>자유게시판</h2>
-        </div>
+        <h1 style="text-align: center; letter-spacing: 2px">자유게시판</h1>
       </div>
       <div id="content">
         <table>
@@ -43,13 +41,18 @@
             <th>시간</th>
             <th>조회수</th>
           </tr>
-          <tr v-for="post in posts" :key="post._id">
-            <td @click="openDetailModal(post)" style="cursor: pointer">
+          <tr
+            @click="openDetailModal(post)"
+            style="cursor: pointer"
+            v-for="post in posts"
+            :key="post._id"
+          >
+            <td>
               {{ post.no }}
             </td>
             <td>{{ post.title }}</td>
             <td>{{ post.author }}</td>
-            <td>{{ formatDate(post.date) }}</td>
+            <td>{{ formatDateTime(post.date) }}</td>
             <td>{{ post.count }}</td>
           </tr>
         </table>
@@ -73,15 +76,19 @@
       <h2 class="modal-title">{{ selectedPost.author }}님의 글</h2>
       <div class="modal-section">
         <p class="modal-section-label">제목:</p>
-        <p class="modal-section-content1">{{ selectedPostTitle }}</p>
+        <input class="modal-section-content1" v-model="selectedPostTitle" />
       </div>
       <div class="modal-section">
         <p class="modal-section-label">내용:</p>
-        <p class="modal-section-content2">{{ selectedPostContent }}</p>
+        <textarea
+          class="modal-section-content2"
+          v-model="selectedPostContent"
+        ></textarea>
       </div>
       <button class="modal-button" @click="showDetailModal = false">
         닫기
       </button>
+      <button class="modal-button-upd" @click="updatePost()">수정</button>
       <button
         class="modal-button-del"
         @click=";[(showDetailModal = false), deletePost(selectedPost._id)]"
@@ -98,15 +105,7 @@ export default {
     return {
       showModal: false,
       loggedInUserId: '',
-      sideBar: [
-        '메인',
-        '부위별 운동',
-        '나만의 루틴',
-        '집근처 헬스장',
-        '각종 구매처',
-        '자유게시판',
-        '마이페이지'
-      ],
+      sideBar: ['부위별 운동', '나만의 루틴', '집근처 헬스장', '자유게시판'],
       author: '',
       content: '',
       title: '',
@@ -119,7 +118,7 @@ export default {
       selectedPostTitle: '',
       selectedPostContent: '',
       currentPage: 1, // 현재 페이지 번호
-      itemsPerPage: 50, // 페이지당 아이템 수를 50으로 설정
+      itemsPerPage: 40, // 페이지당 아이템 수를 50으로 설정
       totalPages: 0 // 총 페이지 수
     }
   },
@@ -175,12 +174,23 @@ export default {
       this.currentPage += offset
       this.fetchPosts() // 페이지 변경 시 게시물 다시 가져오기
     },
-    formatDate(dateTime) {
+    formatDateTime(dateTime) {
       const dateObject = new Date(dateTime)
+
+      const year = dateObject.getFullYear()
+      const month = dateObject.getMonth() + 1
+      const day = dateObject.getDate()
       const hours = dateObject.getHours()
       const minutes = dateObject.getMinutes()
-      const formattedTime = `${hours}:${minutes < 10 ? '0' : ''}${minutes}`
-      return formattedTime
+      const seconds = dateObject.getSeconds()
+
+      const formattedDateTime = `${year}년 ${month < 10 ? '0' : ''}${month}월 ${
+        day < 10 ? '0' : ''
+      }${day}일 ${hours < 10 ? '0' : ''}${hours}:${
+        minutes < 10 ? '0' : ''
+      }${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+
+      return formattedDateTime
     },
     async openDetailModal(post) {
       try {
@@ -208,6 +218,23 @@ export default {
           })
       } catch (error) {
         console.error('게시물 가져오기 오류:', error)
+      }
+    },
+    async updatePost() {
+      try {
+        const updatedPost = {
+          _id: this.selectedPost._id,
+          title: this.selectedPostTitle,
+          content: this.selectedPostContent
+        }
+
+        await axios.put(`/update-post/${updatedPost._id}`, updatedPost)
+
+        // 게시글 수정이 성공하면 모달을 닫고 게시글 목록을 갱신합니다.
+        this.showDetailModal = false
+        this.fetchPosts()
+      } catch (error) {
+        console.error('게시글 수정 오류:', error)
       }
     },
     deletePost(postId) {
@@ -282,51 +309,56 @@ img {
 }
 #container {
   height: 100%;
-  background-color: #585656;
+  background-color: black;
   display: flex;
 }
 #side_bar {
-  background-color: #d9d9d9;
+  background-color: #ffe600;
   margin: 30px 0 0 30px;
-  width: 12%;
-  height: 50%;
-  color: #898787;
+  width: 13%;
+  height: 20%;
 }
 li {
   color: lightslategray;
-  margin: 20px 0 10px 20px;
+  margin: 30px 0 10px 20px;
 }
-li:nth-child(6) {
+li:nth-child(4) {
   color: black;
   font-weight: bold;
   font-size: 20px;
 }
 #main {
-  background-color: #d9d9d9;
+  background-color: #ffe600;
   margin: 30px;
   width: 85%;
   height: 92%;
 }
 #board {
-  height: 4%;
-  border-bottom: 3px solid #898787;
-  margin-bottom: 5px;
+  border-bottom: 4px solid black;
+  margin-bottom: 40px;
   color: #000;
 }
 table {
   border-collapse: collapse;
-  border: 2px solid #898787;
+  border: 3px solid black;
   width: 100%;
   height: 100%;
 }
 tr,
 th,
 td {
-  border: 1px solid black;
+  border: 3px solid black;
   text-align: center;
 }
 #in {
   margin-top: 10px;
+  width: 100px;
+  height: 40px;
+  font-size: 18px;
+  letter-spacing: 3px;
+  border-radius: 10px;
+  background-color: black;
+  color: #ffe600;
 }
 #pagination {
   margin-top: 10px;
@@ -415,6 +447,14 @@ td {
   border-radius: 5px;
   cursor: pointer;
   margin-top: 50px;
-  margin-left: 10px;
+}
+.modal-button-upd {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 50px;
 }
 </style>

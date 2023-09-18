@@ -5,12 +5,18 @@ const path = require('path')
 const VSchema = require('./mdb.cjs')
 const crypto = require('crypto') /* 암호화 모듈 */
 const bodyParser = require('body-parser')
+const cors = require('cors')
+const { Builder, By, until } = require('selenium-webdriver')
+const chrome = require('selenium-webdriver/chrome')
 const app = express()
+
 app.use(history())
 app.use(bodyParser.json())
-const _path = path.join(__dirname, './dist')
+app.use(cors())
 
+const _path = path.join(__dirname, './dist')
 const secretKey = crypto.randomBytes(32) // 32바이트의 랜덤 키 생성
+app.use('/', express.static(_path))
 console.log('Generated Secret Key:', secretKey.toString('hex')) // 버퍼를 16진수 문자열로 변환하여 출력
 
 // POST를 위한 구문
@@ -18,7 +24,6 @@ app.use(express.json())
 
 app.use(express.urlencoded({ extended: true }))
 // 스태틱 경로 설정
-app.use('/', express.static(_path))
 // 로그 INFO
 app.use(logger('tiny'))
 
@@ -176,6 +181,57 @@ app.delete('/delete-post/:postId', async (req, res) => {
     console.error('게시물 삭제 오류:', error)
     res.status(500).send('게시물 삭제 오류')
   }
+})
+
+// news 크롤링
+async function scrapeWebsite() {
+  let driver = await new Builder()
+    .forBrowser('chrome')
+    .setChromeOptions(new chrome.Options().headless())
+    .build()
+
+  try {
+    await driver.get('https://kormedi.com/healthnews/')
+
+    const articles = await driver.findElements(
+      By.className('article__list_wrapper')
+    )
+
+    const scrapedData = []
+
+    for (let i = 0; i < 4; i++) {
+      const article = articles[i]
+      const titleElement = await article.findElement(By.className('post-title'))
+      const title = await titleElement.getText()
+
+      const summaryElement = await article.findElement(
+        By.className('post-summary')
+      )
+      const summary = await summaryElement.getText()
+
+      const imageElement = await article.findElement(
+        By.className('thumbnail-link')
+      )
+      const imageUrl = await imageElement.getAttribute('data-bg')
+      console.log('Image URL:', imageUrl)
+      const linkElement = await article.findElement(By.className('post-title'))
+      const articleLink = await linkElement.getAttribute('href')
+
+      scrapedData.push({ title, summary, imageUrl, articleLink })
+    }
+
+    return scrapedData
+  } catch (error) {
+    console.error(error)
+    return { error: 'An error occurred while scraping the website' }
+  } finally {
+    await driver.quit()
+  }
+}
+
+app.get('/healthnews-data', async (req, res) => {
+  const scrapedData = await scrapeWebsite()
+  res.json(scrapedData)
 })
 
 app.listen(3000, () => {

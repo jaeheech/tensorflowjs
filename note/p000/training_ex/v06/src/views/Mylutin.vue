@@ -39,20 +39,35 @@
           </button>
         </ul>
       </div>
-      <div class="routine-inputs" v-if="showInputs">
-        <h2>{{ routineMessage }}</h2>
-        <input type="text" v-model="newExercise" />
-        <button @click="addExerciseToRoutine" v-if="!routineExists">
-          추가
-        </button>
-        <button @click="saveRoutine" v-if="routineExists">저장</button>
+      <div class="routine-inputs">
+        <h2 v-if="!showInputs">{{ routineMessage }}</h2>
+        <div v-else>
+          <h2>{{ routineMessage }}</h2>
+          <div class="routine_button">
+            <input
+              type="text"
+              v-model="newExercise"
+              placeholder="루틴을 입력하세요"
+            />
+            <button @click="saveRoutine" class="save-button">저장</button>
+            <button @click="showInputs = false" class="cancel-button">
+              취소
+            </button>
+          </div>
+        </div>
       </div>
       <div class="routine-list">
         <h2>루틴 목록</h2>
         <ul>
-          <li v-for="routine in routines" :key="routine._id">
+          <li v-for="(routines, day) in routinesByDay" :key="day">
             <p>
-              {{ routine.day }}요일 루틴: {{ routine.exercises.join(', ') }}
+              {{ day }}요일 루틴:
+              <span v-for="(routine, index) in routines" :key="index">
+                {{ index + 1 }}. {{ routine.exercises.join(', ') }}
+                <button @click="editRoutine(routine)" class="edit_button">
+                  수정
+                </button>
+              </span>
             </p>
           </li>
         </ul>
@@ -90,6 +105,19 @@
         </div>
       </div>
     </div>
+    <div v-if="showModal" class="modal">
+      <div class="modal-content">
+        <h2>루틴 수정</h2>
+        <input
+          type="text"
+          v-model="editedExercise"
+          placeholder="수정할 내용 입력"
+        />
+        <button @click="saveEditedRoutine" class="edit_button">저장</button>
+        <button @click="deleteRoutine" class="edit_button">삭제</button>
+        <button @click="closeModal" class="edit_button">취소</button>
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -105,13 +133,23 @@ export default {
       user: null,
       showInputs: false,
       routineData: {
-        exercise1: '',
-        exercise2: ''
+        exercises: []
       },
       newExercise: '',
-      routineMessage: '',
+      routineMessage: '버튼을이용해 루틴을 작성하세요.',
       routines: [],
-      routineExists: false
+      routinesByDay: {
+        월: [],
+        화: [],
+        수: [],
+        목: [],
+        금: [],
+        토: [],
+        일: []
+      },
+      showModal: false,
+      editedExercise: '',
+      editedRoutineId: null
     }
   },
   created() {
@@ -120,6 +158,7 @@ export default {
       this.fetchUserInfo(this.username)
     }
     this.fetchRoutines()
+    console.log(this.fetchRoutines)
   },
   methods: {
     async fetchUserInfo(username) {
@@ -131,14 +170,22 @@ export default {
         console.error('사용자 정보를 가져오는 중 오류 발생:', error)
       }
     },
-    showRoutineInputs(day) {
-      this.routineData.day = day //
-      this.showInputs = true //
 
-      // 해당 요일에 루틴이 이미 존재하는지 확인
-      this.routineExists = !!this.routines.find(
-        (routine) => routine.day === day
-      )
+    showRoutineInputs(day, routine = null) {
+      this.routineData.day = day
+
+      if (routine) {
+        // 수정 버튼을 클릭한 경우, 루틴 데이터를 불러와 폼에 채움
+        this.newExercise = routine.exercises.join(', ')
+        this.editedRoutineId = routine._id // 수정할 루틴의 ID를 저장
+      } else {
+        // 새 루틴을 추가하는 경우, 루틴 데이터 초기화하고 수정 모드 비활성화
+        this.newExercise = ''
+        this.editedRoutineId = null // 수정 모드가 아닌 경우 ID를 null로 설정
+      }
+
+      // 폼을 표시하고 루틴 작성 메시지를 업데이트
+      this.showInputs = true
       if (day === '월') {
         this.routineMessage = '월요일 루틴 작성'
       } else if (day === '화') {
@@ -155,6 +202,7 @@ export default {
         this.routineMessage = '일요일 루틴 작성'
       }
     },
+
     async saveRoutine() {
       try {
         // 사용자 정보 가져오기
@@ -165,20 +213,40 @@ export default {
         const routineData = {
           username: user.username,
           day: this.routineData.day,
-          exercises: this.newExercise
+          exercises: [this.newExercise]
         }
 
-        // 서버에 루틴 데이터를 보내서 저장
-        await axios.post('/save-routine', routineData)
+        if (this.editedRoutineId) {
+          // 수정 모드에서 루틴을 업데이트합니다.
+          await axios.put(
+            `/update-routine/${this.editedRoutineId}`,
+            routineData
+          )
+          // 수정 모드에서 루틴을 저장한 후 폼 초기화
+          this.newExercise = ''
+          // 수정 모드에서 루틴을 저장한 후 editedRoutineId를 초기화합니다.
+          this.editedRoutineId = null
+        } else {
+          // 새 루틴을 추가할 때 editedRoutineId를 초기화합니다.
+          this.editedRoutineId = null
+          // 수정 모드가 아닌 경우, 해당 요일의 모든 루틴을 대체합니다.
+          const response = await axios.post(
+            '/save-routine', // 수정 모드가 아닌 경우 저장 엔드포인트를 사용합니다.
+            routineData
+          )
+          // 저장 후에 폼 초기화
+          this.newExercise = ''
+          // 저장 후에 서버에서 받아온 루틴을 추가합니다.
+          this.routines.push(response.data.routine)
+        }
 
-        // 저장 후에 폼 초기화
-        this.newExercise = ''
         // 루틴 입력 폼 숨기기
+        this.routineMessage = '버튼을 이용해 루틴을 작성하세요.'
+        alert('저장되었습니다.')
         this.showInputs = false
-        // 루틴 저장 후에 목록 다시 불러오기
         this.fetchRoutines()
       } catch (error) {
-        console.error('루틴을 저장하는 중 오류 발생:', error)
+        console.error('루틴을 저장 또는 수정하는 중 오류 발생:', error)
       }
     },
     async fetchRoutines() {
@@ -186,45 +254,117 @@ export default {
         // 서버에서 루틴 데이터를 가져오기
         const response = await axios.get(`/get-routines/${this.username}`)
         this.routines = response.data.routines
+
+        // Initialize routinesByDay with empty arrays for each day
+        this.routinesByDay = {
+          월: [],
+          화: [],
+          수: [],
+          목: [],
+          금: [],
+          토: [],
+          일: []
+        }
+
+        this.routines.forEach((routine) => {
+          // Make sure routine.day is a valid day of the week
+          if (this.routinesByDay[routine.day]) {
+            this.routinesByDay[routine.day].push(routine)
+          }
+        })
       } catch (error) {
         console.error('루틴을 불러오는 중 오류 발생:', error)
       }
     },
-    async addExerciseToRoutine() {
-      // 사용자가 선택한 요일에 대한 루틴 찾기
-      const day = this.routineData.day
-      const existingRoutine = this.routines.find(
-        (routine) => routine.day === day
+    editRoutine(routine) {
+      this.showModal = true
+      this.editedExercise = routine.exercises.join(', ')
+      this.editedRoutineId = routine._id
+    },
+    closeModal() {
+      this.showModal = false
+    },
+    async saveEditedRoutine() {
+      try {
+        // 수정된 내용을 서버로 보내기 위한 데이터 준비
+        const updatedRoutineData = {
+          exercises: this.editedExercise
+            .split(',')
+            .map((exercise) => exercise.trim())
+        }
+
+        // Axios를 사용하여 서버에 수정된 루틴 데이터 보내기
+        await axios.put(
+          `/update-routine/${this.editedRoutineId}`,
+          updatedRoutineData
+        )
+
+        // 수정이 완료되면 showModal을 false로 설정하여 모달을 닫습니다.
+        alert('수정 되었습니다.')
+        this.showModal = false
+
+        this.fetchRoutines()
+      } catch (error) {
+        console.error('루틴 수정 중 오류 발생:', error)
+      }
+    },
+    async deleteRoutine() {
+      try {
+        if (!this.editedRoutineId) {
+          // 수정 중인 루틴 ID가 없다면 아무것도 하지 않음
+          return
+        }
+
+        // Axios를 사용하여 서버에 루틴 삭제 요청 보내기
+        await axios.delete(`/delete-routine/${this.editedRoutineId}`)
+
+        // 삭제 후에 showModal을 false로 설정하여 모달을 닫습니다.
+        this.showModal = false
+
+        // 삭제한 루틴을 화면에서도 제거하기 위해 데이터 업데이트
+        this.removeDeletedRoutine(this.editedRoutineId)
+      } catch (error) {
+        console.error('루틴 삭제 중 오류 발생:', error)
+      }
+    },
+    removeDeletedRoutine(routineId) {
+      this.routines = this.routines.filter(
+        (routine) => routine._id !== routineId
       )
 
-      if (existingRoutine) {
-        // 이미 해당 요일에 루틴이 있는 경우, 새로운 운동을 추가
-        existingRoutine.exercises.push(this.newExercise)
-      } else {
-        // 해당 요일에 루틴이 없는 경우, 새로운 루틴 생성
-        const newRoutine = {
-          day: day,
-          exercises: [this.newExercise]
-        }
-        this.routines.push(newRoutine)
+      // this.routinesByDay 객체에서도 해당 루틴을 찾아 제거해야 합니다.
+      for (const day in this.routinesByDay) {
+        this.routinesByDay[day] = this.routinesByDay[day].filter(
+          (routine) => routine._id !== routineId
+        )
       }
-
-      // 입력 폼 초기화
-      this.newExercise = ''
     }
   }
 }
 </script>
 <style scoped>
+.edit_button {
+  background-color: #ffbfbf;
+}
+.modal {
+  /* 모달을 화면 중앙에 표시하기 위한 스타일 */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  z-index: 9999;
+}
 #mylutin_all {
   display: flex;
-  background-color: #585656;
+  background-color: white;
   margin: 0;
   width: 100%;
   height: 100%;
 }
 #mylutin_sidebar {
-  background-color: #d9d9d9;
+  background-color: #ffbfbf;
   margin: 30px 0 0 30px;
   width: 13%;
   height: 20%;
@@ -239,7 +379,7 @@ export default {
   font-weight: bold;
 }
 #mylutin_content {
-  background-color: #d9d9d9;
+  background-color: #ffbfbf;
   margin: 30px;
   width: 85%;
   height: auto;
@@ -255,13 +395,13 @@ export default {
 .weekend-button {
   font-size: 20px;
   font-weight: bold;
-  padding: 10px 20px; /* 상하 10px, 좌우 20px의 안간격을 지정합니다. */
-  border: none; /* 버튼의 기본 테두리를 제거합니다. */
-  border-radius: 5px; /* 둥근 모서리를 추가합니다. */
-  background-color: #2d8a7d; /* 빨간색 */
-  color: #fff; /* 흰색 텍스트 */
-  margin-right: 5px; /* 각 버튼 사이의 오른쪽 여백을 지정합니다. */
-  cursor: pointer; /* 커서를 포인터로 변경하여 버튼임을 나타냅니다. */
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #ffe4e4;
+  color: black;
+  margin-right: 5px;
+  cursor: pointer;
 }
 
 .weekday-button:hover,
@@ -277,6 +417,23 @@ export default {
   top: 30px; /* 위에서 10px 떨어진 위치 */
   right: 10px; /* 오른쪽에서 10px 떨어진 위치 */
 }
+
+.routine-inputs {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+.routine-inputs input {
+  margin-bottom: 10px;
+  border: none;
+  border-bottom: 2px solid black;
+  font-size: 24px;
+  padding: 9px;
+  width: 50%;
+  background-color: #ffbfbf;
+  margin-left: auto;
+}
+
 .youtube {
   display: flex;
   justify-content: space-around;
@@ -294,19 +451,72 @@ export default {
   width: 450px;
   height: 300px;
 }
-.routine-inputs {
-  display: flex;
-  flex-direction: column;
-  margin-top: 20px;
+.save-button {
+  margin-top: 10px;
+  width: 100px;
+  height: 40px;
+  font-size: 18px;
+  letter-spacing: 3px;
+  background-color: #ffe4e4;
+  color: black;
+  border-radius: 10px;
+  margin-left: auto;
+  margin-right: 10px;
 }
-.routine-inputs input {
+.cancel-button {
+  margin-top: 10px;
+  width: 100px;
+  height: 40px;
+  font-size: 18px;
+  letter-spacing: 3px;
+  background-color: #ffe4e4;
+  color: black;
+  border-radius: 10px;
+  margin-left: auto;
+  margin-right: 10px;
+}
+.routine_button {
+  display: flex;
+}
+.routine-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.routine-list li {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
   margin-bottom: 10px;
-  border: none;
-  border-bottom: 2px solid black;
+  background-color: #ffe4e4; /* Alternate background colors */
+}
+
+.routine-list li:nth-child(even) {
+  background-color: lavenderblush; /* Alternate background colors */
+}
+
+.routine-list p {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.routine-list {
+  margin-top: 20px;
+  padding: 10px;
+}
+
+.routine-list h2 {
   font-size: 24px;
-  padding: 9px;
-  width: 50%;
-  background-color: #d9d9d9;
-  margin-left: 50px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.routine-list li:hover {
+  background-color: #d0d0d0; /* Hover effect */
+  transition: background-color 0.3s ease-in-out;
+}
+.input_routine {
+  display: flex;
 }
 </style>

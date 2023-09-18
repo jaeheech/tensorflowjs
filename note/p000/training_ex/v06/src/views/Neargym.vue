@@ -1,21 +1,39 @@
 <template>
   <div id="neargym_all">
     <div id="neargym_sidebar">
-      <!-- 사이드바 내용 -->
       <ul>
-        <li>메인</li>
-        <li>부위별 운동</li>
-        <li>나만의 루틴</li>
-        <li>집근처 헬스장</li>
-        <li>각종 구매처</li>
-        <li>자유게시판</li>
-        <li>마이페이지</li>
+        <li v-for="v in sideBar" :key="v">{{ v }}</li>
       </ul>
     </div>
     <div id="neargym_content">
-      <h2 style="margin-left: 2%">집근처 헬스장</h2>
-      우리집 근처 역은?
-      <select v-model="station" @change="moveToSelectedStation">
+      <div id="neargym_content_title" style="border-bottom: 4px solid black">
+        <h1 style="text-align: center; letter-spacing: 2px">집근처 헬스장</h1>
+      </div>
+      <p
+        style="
+          font-size: 20px;
+          font-weight: bold;
+          letter-spacing: 1px;
+          text-align: center;
+          margin-top: 3%;
+        "
+      >
+        우리집 근처 역은?
+      </p>
+      <select
+        v-model="station"
+        @change="moveToSelectedStation"
+        style="
+          width: 500px;
+          height: 35px;
+          border-radius: 10px;
+          margin: 0 0 5% 32%;
+          background-color: black;
+          color: #ffe600;
+          font-weight: bold;
+          letter-spacing: 1px;
+        "
+      >
         <option value="">역을 선택하세요</option>
         <option value="동대신동역">동대신동역</option>
         <option value="토성역">토성역</option>
@@ -40,7 +58,8 @@ export default {
         서면역: { gpsx: 35.1571, gpsy: 129.0591 }
       },
       gyms,
-      map: null
+      map: null,
+      sideBar: ['부위별 운동', '나만의 루틴', '집근처 헬스장', '자유게시판']
     }
   },
   mounted() {
@@ -110,35 +129,45 @@ export default {
 <style scoped>
 #neargym_all {
   display: flex;
-  background-color: #585656;
+  background-color: black;
   margin: 0;
   width: 100%;
   height: 100%;
 }
 #neargym_sidebar {
-  background-color: #d9d9d9;
+  background-color: #ffe600;
   margin: 30px 0 0 30px;
-  width: 12%;
-  height: 50%;
+  width: 13%;
+  height: 20%;
 }
 #neargym_sidebar li {
   color: lightslategray;
-  margin: 20px 0 10px 20px;
+  margin: 30px 0 10px 20px;
 }
-#neargym_sidebar li:nth-child(4) {
+#neargym_sidebar li:nth-child(3) {
   color: black;
   font-size: 20px;
   font-weight: bold;
 }
 #neargym_content {
-  background-color: #d9d9d9;
+  background-color: #ffe600;
   margin: 30px;
   width: 85%;
   height: 92%;
 }
+#neargym_content select:hover {
+  box-shadow: inset 3px 3px 3px black;
+  cursor: pointer;
+}
+#neargym_content select option {
+  text-align: center;
+  background-color: black;
+  color: #ffe600;
+}
 .map-container {
-  width: 800px;
-  height: 500px;
-  padding: 100px;
+  width: 1000px;
+  height: 700px;
+  border-radius: 20px;
+  margin: 2% 0 0 14%;
 }
 </style>

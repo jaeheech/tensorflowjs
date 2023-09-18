@@ -10,7 +10,7 @@
 
     <!-- 우측 content 파트 -->
     <div id="part_content">
-      <div id="part_content_title" style="border-bottom: 3px solid #989898">
+      <div id="part_content_title" style="border-bottom: 4px solid black">
         <h1 style="text-align: center; letter-spacing: 2px">부위별 운동</h1>
       </div>
       <!-- selection 파트 -->
@@ -19,7 +19,7 @@
         <label v-for="part in parts" :key="part">
           <input
             type="checkbox"
-            :id="'checkbox_' + part"
+            :id="part"
             :value="part"
             v-model="selectedParts"
           />
@@ -36,11 +36,6 @@
           :key="index"
         >
           <div id="GEcard">
-            <input
-              type="checkbox"
-              :id="'checkbox_GEcard_' + index"
-              v-model="gymEquipment.checked"
-            />
             <div id="GEcard_img">
               <img :src="gymEquipment.image" />
             </div>
@@ -51,18 +46,10 @@
         </div>
       </div>
       <!-- // result 파트 -->
-      <button>월요일</button>
-      <button>화요일</button>
-      <button>수요일</button>
-      <button>목요일</button>
-      <button>금요일</button>
-      <button>토요일</button>
-      <button>일요일</button>
     </div>
     <!-- // 우측 content 파트 -->
   </div>
 </template>
-
 <script>
 import gymEquipmentData from '../../public/gymEquipment.js'
 
@@ -92,13 +79,13 @@ export default {
 <style scoped>
 #part_all {
   display: flex;
-  background-color: #585656;
+  background-color: black;
   margin: 0;
   width: 100%;
   height: 100%;
 }
 #part_sidebar {
-  background-color: #d9d9d9;
+  background-color: #ffe600;
   margin: 30px 0 0 30px;
   width: 13%;
   height: 20%;
@@ -113,7 +100,7 @@ export default {
   font-weight: bold;
 }
 #part_content {
-  background-color: #d9d9d9;
+  background-color: #ffe600;
   margin: 30px;
   width: 85%;
   height: 92%;
@@ -131,7 +118,7 @@ export default {
   flex-wrap: wrap;
 }
 #GEcard {
-  background-color: rgb(176, 176, 176);
+  background-color: black;
   width: 230px;
   height: 270px;
   margin: 0 20px 20px 0;
@@ -143,7 +130,7 @@ export default {
 }
 #GEcard p {
   text-align: left;
-  color: rgb(0, 0, 0);
+  color: white;
   font-weight: bold;
   font-size: 15px;
   margin-left: 15px;

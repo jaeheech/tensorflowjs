@@ -16,9 +16,13 @@
     <div v-if="showModal" id="modal">
       <!-- 모달 창 -->
       <div id="modal_content">
-        <img src="../../public/logo.jpg" alt="" />
-        <br />
-        <input id="question" v-model="question" />
+        <img
+          src="../../public/logo_ver2.png"
+          alt="logo"
+          style="position: relative; left: 20%"
+        /><br />
+        질문 <input id="question" v-model="question" />
+        <p>답변</p>
         <textarea id="response" v-model="response"></textarea>
         <button id="modal_click" @click="gpt3()">질문</button>
         <button id="modal_end" @click="showModal = false">취소</button>
@@ -27,7 +31,15 @@
 
     <!-- 사진, 명언집, 노래 or 게시글들 -->
     <div id="main_row_01">
-      <div class="left" style="width: 680px; height: 350px; margin-left: 80px">
+      <div
+        class="left"
+        style="
+          width: 680px;
+          height: 350px;
+          margin-left: 80px;
+          border: 5px solid #ffe600;
+        "
+      >
         <!-- 사진들 오토레이어 -->
         <div id="row_01_imgs" class="slick-slider" ref="slickSliderHealth">
           <div
@@ -45,13 +57,16 @@
         <div
           id="row_01_content_01"
           style="
-            width: 750px;
-            height: 100px;
+            width: 730px;
+            height: 90px;
             margin-bottom: 20px;
-            background-color: beige;
+            border-radius: 10px;
+            background-color: #ffe600;
+            padding-top: 15px;
+            padding-left: 20px;
           "
         >
-          <span>오늘의 명언</span>
+          <span style="font-weight: bold; font-size: 18px"> 오늘의 띵언 </span>
           <ul ref="slickSliderMaxim">
             <li
               v-for="(maxim, index) in maxims"
@@ -59,19 +74,32 @@
               class="slick-slider"
               style="list-style: none"
             >
-              <span class="maxim-content">{{ maxim.content }}</span>
+              <span class="maxim-content" style="font-weight: bold">{{
+                maxim.content
+              }}</span>
             </li>
           </ul>
         </div>
         <div
           id="row_01_content_02"
-          style="width: 750px; height: 230px; background-color: beige"
+          style="
+            width: 730px;
+            height: 220px;
+            background-color: #ffe600;
+            border-radius: 10px;
+            padding-top: 15px;
+            padding-left: 20px;
+          "
         >
-          <span>실시간 핫한 글</span>
+          <span style="font-weight: bold; font-size: 18px">실시간 핫한 글</span>
           <ul>
-            <li>3대 670 질문 받는다</li>
-            <li>3대 670 질문 받는다</li>
-            <li>3대 670 질문 받는다</li>
+            <li
+              v-for="(post, index) in hotPosts"
+              :key="index"
+              style="font-weight: bold"
+            >
+              {{ post.title }}
+            </li>
           </ul>
         </div>
       </div>
@@ -89,94 +117,29 @@
     >
       〈오늘의 건강 뉴스〉
     </p>
-    <div id="main_row_02">
-      <div class="left" style="margin-top: -30px; margin-right: 43px">
-        <div id="row_02_imgs_01" style="margin-right: 20px">
-          <img
-            src="../../public/health2.jpg"
-            alt="#"
-            width="400px"
-            height="285px"
-          />
-        </div>
-        <div id="row_02_content_01">
-          <span style="font-size: 20px; font-weight: 700"
-            >프로틴은 사실 여성 다이어트 <br />제품이다?!</span
-          ><br />
-          <span style="display: inline-block; margin-top: 20px"
-            >근육 형성과 유지 등을 위해 운동하는<br />사람이 주로 섭취하는
-            단백질 보충제<br />가 다이어트 및 근감소증 예방에도 효<br />과가
-            있는 것으로 알려지면서 소비층<br />이 여성과 중장년층으로 확대되고
-            있<br />다.</span
-          >
-        </div>
-      </div>
-      <div class="right" style="margin-top: -30px">
-        <div id="right_row_01" style="display: flex">
-          <div id="row_02_imgs_01" style="margin-right: 20px">
-            <img
-              src="../../public/health3.jpg"
-              alt="#"
-              width="120px"
-              height="90px"
-            />
+    <div>
+      <div
+        v-for="(article, index) in articles"
+        :key="index"
+        class="article"
+        style="margin: 0 0 20px 80px"
+      >
+        <a
+          :href="article.articleLink"
+          target="_blank"
+          style="text-decoration-line: none; color: white"
+        >
+          <h1>{{ article.title }}</h1>
+          <div class="news_low1_content" style="display: flex">
+            <img :src="article.imageUrl" alt="...로딩중" style="width: 300px" />
+            <p style="margin-left: 20px; font-size: 18px; width: 72%">
+              {{ article.summary }}
+            </p>
           </div>
-          <div id="row_02_content_01">
-            <span style="font-size: 18px; font-weight: 700"
-              >프로틴은 사실 여성 다이어트 제품이다?!</span
-            ><br />
-            <span
-              style="font-size: 15px; display: inline-block; margin-top: 10px"
-              >근육 형성과 유지 등을 위해 운동하는사람이 주로 섭취하는 단백질
-              보충제가 다이어트 및<br />근감소증 예방에도 효과가 있는 것으로
-              알려지면서 소비층이 여성과 중장년층으로 확대됨</span
-            >
-          </div>
-        </div>
-        <div id="right_row_02" style="display: flex">
-          <div id="row_02_imgs_02" style="margin-right: 20px">
-            <img
-              src="../../public/health3.jpg"
-              alt="#"
-              width="120px"
-              height="90px"
-            />
-          </div>
-          <div id="row_02_content_02">
-            <span style="font-size: 18px; font-weight: 700"
-              >프로틴은 사실 여성 다이어트 제품이다?!</span
-            ><br />
-            <span
-              style="font-size: 15px; display: inline-block; margin-top: 10px"
-              >근육 형성과 유지 등을 위해 운동하는사람이 주로 섭취하는 단백질
-              보충제가 다이어트 및<br />근감소증 예방에도 효과가 있는 것으로
-              알려지면서 소비층이 여성과 중장년층으로 확대됨</span
-            >
-          </div>
-        </div>
-        <div id="right_row_03" style="display: flex">
-          <div id="row_02_imgs_03" style="margin-right: 20px">
-            <img
-              src="../../public/health3.jpg"
-              alt="#"
-              width="120px"
-              height="90px"
-            />
-          </div>
-          <div id="row_02_content_03">
-            <span style="font-size: 18px; font-weight: 700"
-              >프로틴은 사실 여성 다이어트 제품이다?!</span
-            ><br />
-            <span
-              style="font-size: 15px; display: inline-block; margin-top: 10px"
-              >근육 형성과 유지 등을 위해 운동하는사람이 주로 섭취하는 단백질
-              보충제가 다이어트 및<br />근감소증 예방에도 효과가 있는 것으로
-              알려지면서 소비층이 여성과 중장년층으로 확대됨</span
-            >
-          </div>
-        </div>
+        </a>
       </div>
     </div>
+
     <!-- // 오늘의 건강뉴스 -->
 
     <!-- 오늘의 핫딜 상품들 -->
@@ -199,9 +162,11 @@
             class="slick-slide"
             style="margin: 20px"
           >
-            <img :src="product.image" />
-            <div class="product-name">{{ product.name }}</div>
-            <div class="product-price">{{ product.price }}</div>
+            <a :href="product.url">
+              <img :src="product.image" />
+              <div class="product-name">{{ product.name }}</div>
+              <div class="product-price">{{ product.price }}</div>
+            </a>
           </div>
         </div>
       </div>
@@ -210,6 +175,7 @@
   </div>
 </template>
 <script>
+import axios from 'axios'
 import productsData from '../../public/products.js'
 import maximData from '../../public/maxim.js'
 import healthimgs from '../../public/healthimg.js'
@@ -230,13 +196,24 @@ export default {
       slickSliderHealth: null,
       showModal: false,
       question: '',
-      response: ''
+      response: '',
+      hotPosts: [],
+      articles: []
     }
   },
   mounted() {
     this.$nextTick(() => {
       this.initSlickSlider()
     })
+    this.fetchHotPosts()
+    axios
+      .get('/healthnews-data')
+      .then((response) => {
+        this.articles = response.data
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error)
+      })
   },
   methods: {
     initSlickSlider() {
@@ -285,6 +262,16 @@ export default {
       // if (this.history.length > 4000) {
       //   this.history = ''
       // }
+    },
+    fetchHotPosts() {
+      axios
+        .get('/get-hot-posts')
+        .then((response) => {
+          this.hotPosts = response.data
+        })
+        .catch((error) => {
+          console.error('실시간 핫한 글 가져오기 오류:', error)
+        })
     }
   },
   beforeUnmount() {
@@ -303,7 +290,7 @@ export default {
 <style scoped>
 #Homeview {
   height: 100%;
-  background-color: #585656;
+  background-color: black;
 }
 
 /* chat_bot */
@@ -331,6 +318,9 @@ export default {
   display: flex;
   margin-top: 50px;
   margin-left: 80px;
+}
+.article a :is(h1, p):hover {
+  color: #ffe600;
 }
 #main_row_02 .left {
   display: flex;
@@ -378,32 +368,44 @@ export default {
   z-index: 10;
 }
 #modal_content {
+  border: 3px solid #ffe600;
   width: 500px;
   height: 500px;
-  background-color: #d9d9d9;
+  background-color: black;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
   position: relative;
+  color: #ffe600;
 }
 #modal_click {
   position: absolute;
-  bottom: 0%;
-  left: 10%;
+  bottom: 2%;
+  left: 12.5%;
+  background-color: #ffe600;
+  font-weight: bold;
 }
 #modal_end {
   position: absolute;
-  bottom: 0%;
-  left: 20%;
+  bottom: 2%;
+  left: 25%;
+  background-color: #ffe600;
+  font-weight: bold;
 }
 #question {
   width: 50%;
   height: 5%;
   margin: 10px;
+  background-color: #ffe600;
 }
 #response {
-  width: 90%;
+  width: 80%;
   height: 60%;
-  margin: 25px;
+  margin: -35px 0 0 47px;
+  background-color: #ffe600;
+}
+.left img {
+  width: '400px';
+  height: '285px';
 }
 </style>

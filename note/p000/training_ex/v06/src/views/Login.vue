@@ -7,7 +7,7 @@
         <button class="close-button" @click="closeModal">X</button>
         <header style="margin-bottom: 20px">
           <!-- 로고 이미지 -->
-          <img src="../../public/logo.jpg" alt="logo" />
+          <img src="../../public/logo_ver2.png" alt="logo" />
         </header>
         <form @submit.prevent="login">
           <!-- 로그인 폼 -->
@@ -45,23 +45,6 @@
               <span>회원가입</span>
             </button>
           </div>
-          <!-- 소셜 로그인 버튼 -->
-          <div class="social-button-container">
-            <button class="custom-button">
-              <img
-                src="../../public/social_login_button.png"
-                alt="Social Login"
-                style="width: 240px; height: 45px"
-              />
-            </button>
-            <button class="naver-button">
-              <img
-                src="../../public/naver.png"
-                alt=""
-                style="width: 230px; height: 45px"
-              />
-            </button>
-          </div>
         </form>
       </div>
     </div>
@@ -76,7 +59,7 @@
         <button class="close-button" @click="closeSignupModal">X</button>
         <header style="margin-bottom: 20px">
           <!-- 로고 이미지 -->
-          <img src="../../public/logo.jpg" alt="logo" />
+          <img src="../../public/logo_ver2.png" alt="logo" />
         </header>
         <form @submit.prevent="signup">
           <!-- 회원가입 폼 -->
@@ -155,14 +138,14 @@ export default {
   data() {
     return {
       showModal: true,
-      showSignupModal: false,
-      showSignupSuccess: false,
+      showSignupModal: false, // 회원가입 모달창 처음엔 안나옴
+      showSignupSuccess: false, // 회원가입성공시 닫힘
       username: '',
       password: '',
       signupUsername: '',
       signupPassword: '',
       showLoginSuccess: false,
-      loggedIn: false,
+      loggedIn: false, // 로그인 상태
       usernameUnavailable: false
     }
   },
@@ -176,11 +159,10 @@ export default {
           tell: this.signupTell,
           email: this.signupEmail
         })
-
+        // console.log(response.data)
         this.showSignupSuccess = true // 회원가입 완료 팝업 표시
         this.closeSignupModal() // 회원가입 모달 닫기
       } catch (error) {
-        // 5. 회원가입 요청이 실패하면 에러를 콘솔에 출력합니다.
         console.error('회원가입 실패:', error)
       }
     },
@@ -192,17 +174,16 @@ export default {
           password: this.password
         })
         // 로그인 성공 시 처리
-        this.$store.commit('login', this.username) // Vuex 상태 업데이트
+        this.$store.commit('login', this.username)
         this.$router.push('/') // 기존에 있던 메인 화면으로 이동
         // 로그인 성공 메시지를 표시
         const message = `${this.username}님 로그인 성공하셨습니다.`
         alert(message)
-        // 로그인 실패 처리
+        // 로그인 실패 처리〈오늘의 핫딜 상품들〉
       } catch (error) {
         console.error('로그인 실패:', error)
       }
     },
-
     /* 아이디 중복체크 메소드 */
     async checkUsernameAvailability() {
       try {
@@ -211,24 +192,21 @@ export default {
         })
 
         if (response.data.available) {
-          // 아이디 사용 가능
+          // 아이디 사용 가능하면 메시지 안나옴
           this.usernameUnavailable = false
         } else {
-          // 아이디 중복
+          // 아이디 중복 일때 메세지 나옴
           this.usernameUnavailable = true
         }
       } catch (error) {
         console.error('아이디 중복 확인 실패:', error)
       }
     },
-
-    /* 모달닫기 */
     closeModal() {
       // console.log('모달 닫기')
       this.showModal = false
       this.$router.push('/')
     },
-    /* 회원가입 모달 오픈 */
     openSignupModal() {
       this.showSignupModal = true
     },
@@ -249,10 +227,9 @@ export default {
     closeLoginSuccessPopup() {
       this.showLoginSuccess = false
       this.showModal = false
-      this.$router.push('/')
+      this.$router.push('/') // 메인페이지로 돌아감
     },
     logout() {
-      // 로그아웃 동작 수행 (토큰 제거, 데이터 초기화 등)
       this.loggedIn = false // 로그아웃 시 loggedIn 상태를 업데이트
     }
   }
@@ -289,10 +266,6 @@ export default {
   margin-top: 10px;
 }
 
-.naver-button img {
-  max-width: 100%;
-  height: auto;
-}
 #username {
   margin-left: 50px;
 }
@@ -301,7 +274,7 @@ span {
 }
 #id_span {
   padding-left: 10px;
-  background-color: #989898;
+  background-color: #ffe4e4;
   padding: 20px;
   border-radius: 10px;
 }
@@ -320,7 +293,7 @@ span {
 
 .modal-content {
   width: 500px;
-  background-color: #d9d9d9;
+  background-color: #ffbfbf;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
@@ -359,7 +332,7 @@ form {
 }
 
 input {
-  background-color: #989898;
+  background-color: #ffe4e4;
   width: 80%;
   border: none;
   text-align: center;
@@ -367,7 +340,7 @@ input {
 }
 
 button {
-  background-color: #989898;
+  background-color: #ffe4e4;
   color: black;
   font-weight: bolder;
   border: none;
